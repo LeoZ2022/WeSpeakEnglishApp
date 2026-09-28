@@ -1,0 +1,3 @@
+包名：uni.UNID9F6655 android： uni.UNID9F6655 iOS：io.com.wespeakenglish
+证书别名：enchat
+证书密码：123456

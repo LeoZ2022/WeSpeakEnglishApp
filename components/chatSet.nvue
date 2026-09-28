@@ -1,0 +1,342 @@
+<template>
+	<!-- <view class="window" :class="{chatSetOut: !chatSetShow, chatSetIn: chatSetShow}"> -->
+	<view class="window" v-if="chatSetShow">
+		<view class="windowBox">
+			<view class="windowHead">
+				<text class="windowTitle">SETTING</text>
+				<text class="windowClose ly-icon" @click="chatOutSet" :class="{'btnTap' : btnTap}"
+					@touchstart="closeTap" @touchend="closeTapEnd">&#xe622;</text>
+			</view>
+			
+			<view class="windowMain">
+				<view class="windowRow">
+					<text class="windowRowLable">Camera</text>
+					<view class="windowRowMain">
+						<switch :checked="cameraChangeSwitch" @change="cameraChange" color="#65a46d" style="margin-right: -4px;" />
+					</view>
+				</view>
+				<view class="windowRow">
+					<text class="windowRowLable">Camera Switch</text>
+					<view class="windowRowMain">
+						<text class="cameraTab" v-for="(item,index) in cameraSwitch"
+							:class="{'cameraTabCut': cameraCut == index}"
+							@click="cameraSwitchClick(index)">{{item}}</text>
+					</view>
+				</view>
+				<view class="windowRow">
+					<text class="windowRowLable">Microphone</text>
+					<view class="windowRowMain">
+						<switch :checked="setAudioCaptureVolumeSwitch" @change="microphoneChange" color="#65a46d" style="margin-right: -4px;" />
+					</view>
+				</view>
+				<view class="windowRow">
+					<text class="windowRowLable">Speaker</text>
+					<view class="windowRowMain">
+						<switch @change="speakerChange" :checked="audioRouteSwitch" color="#65a46d" style="margin-right: -4px;" />
+					</view>
+				</view>
+				<block v-if="isOneRoom">
+					<view class="windowRow">
+						<view class="setTestBtn" @click="playMusic" :class="{'setTestBtnCut': musicIsPlay}"> 
+							<text class="ly-icon setTestBtnIcon" :class="{'setTestBtnIconCut': musicIsPlay}">&#xe62d;</text><text class="setTestBtnText" :class="{'setTestBtnTextCut': musicIsPlay}">Test</text>
+						</view>
+					</view>
+					<!-- <view class="windowRow">
+						<button class="setSubmitBtn" @click="chatOutSet('join')">
+							<text class="setSubmitBtnText">Chat room</text>
+						</button>
+					</view> -->
+				</block>
+			</view>
+		</view>
+	</view>
+</template>
+<style>
+	.ly-icon {
+		font-family: lyicon;
+	}
+	.window{
+		position: fixed;
+		 
+		flex-direction: row;
+		display: flex;
+		justify-content:center; 
+		align-items: center;
+		z-index:9999;
+	}
+	.windowBox{
+		background-color: #fff;
+		border-radius: 20rpx; 
+		width: 660rpx;
+		border-radius: 20rpx;
+	}
+	.windowHead{
+		position: relative;
+		margin: 15rpx 0 0 0;
+	}
+	.windowClose{
+		position: absolute;
+		right: 0;
+		top: 0; 
+		width: 150rpx;
+		height: 100rpx;
+		text-align: center;
+		line-height: 100rpx;
+		font-size: 45rpx;
+		font-weight: bold;
+		color: #c5c1c0;
+	}
+	.btnTap{
+		color: #333;
+	}
+	.windowTitle{
+		color: #4e3d37;
+		font-size: 40rpx;
+		font-weight: bold;
+		line-height: 100rpx;
+		padding-left: 50rpx;
+	}
+	.windowMain{
+		padding: 20rpx 50rpx;
+	}
+	.windowRow{
+		flex-direction: row;
+		display: flex;
+		align-items: center;
+		margin-bottom: 40rpx;
+	}
+	.windowRow:last-child{
+		margin: 0;
+	}
+	.windowRowLable{
+		width: 220rpx;
+		font-size: 32rpx;
+		color: rgba(78,61,55,.7);
+	}
+	.windowRowMain{
+		flex: 1;
+		flex-direction: row;
+		display: flex;		 
+		justify-content: flex-end;
+	}
+	.cameraTab{
+		background: #fff;
+		border: 1px solid #e9e9e9;
+		border-radius: 10rpx;
+		color: rgba(78,61,55,.5);
+		line-height: 60rpx;
+		display: inline-flex;
+		font-size: 32rpx;
+		padding: 0 20rpx;
+		margin: 0 0 0 16rpx;
+	}
+	.cameraTabCut{
+		background: #65a46d;
+		border: 1px solid #65a46d;
+		color: #fff;
+	}
+	
+	.chatSetOut{
+		transform: translateY(1600rpx);
+		transition:transform .55s ease-out; 
+	} 
+	.chatSetIn{
+		transform: translateY(0rpx);
+		transition:transform .55s ease-out;
+	} 
+	.setTestBtn{
+		line-height: 62rpx;
+		height: 62rpx;
+		border: 1px solid #e9e9e9;
+		background: #fff;
+		border-radius: 10rpx;
+		text-align: center;
+		width: 100% !important;
+		display: flex;
+		flex: 1; 
+		flex-direction: row;
+		justify-content:center;
+		align-content: center;
+	}
+	.setTestBtnCut{
+		border: 1px solid #65a46d;
+	}
+	.setTestBtnIcon{
+		font-size:46rpx;
+		color:#999; 
+		line-height: 62rpx;
+		height: 62rpx;
+	}
+	.setTestBtnText{
+		font-size: 32rpx;
+		color:#979797;
+		margin-left: 10rpx;
+		font-weight: unset;
+		line-height: 62rpx;
+		height: 62rpx;
+	}
+	.setTestBtnIconCut,
+	.setTestBtnTextCut{
+		color: #65a46d;
+	}
+	.setSubmitBtn{
+		border: none;
+		width: 100% !important;
+		display: flex;
+		flex: 1; 
+		flex-direction: row;
+		justify-content:center;
+		align-content: center;
+		border:none;
+		background-color: #65a46d;
+		height: 80rpx;
+		line-height: 80rpx;
+		padding: 0 !important;
+		margin: 10rpx 0 0 0;
+	}
+	.setSubmitBtnText{
+		background-color: #65a46d;
+		height: 80rpx;
+		line-height: 80rpx;
+		margin: 0 -4px;
+		display: flex;
+		flex: 1; 
+		flex-direction: row;
+		justify-content:center; 
+		border-radius: 10rpx;
+		text-align: center;
+		font-size: 32rpx;
+		color: #f8f8f8;
+	}
+</style>
+<script>
+	const dom = weex.requireModule('dom');
+	dom.addRule('fontFace', {
+		fontFamily: 'lyicon',
+		src: "url('/static/iconFont/iconfont.ttf')"
+	});
+	export default {
+		data() {
+			return {
+				btnTap:false,
+				setTestTap:false,
+				cameraSwitch:['Front','Back'],
+				cameraCut:0,
+				chatSetShow:false,
+				
+				setAudioCaptureVolume:100,
+				setAudioCaptureVolumeSwitch:true,
+				audioRoute: 0,
+				audioRouteSwitch:true,
+				musicIsPlay:false,
+				cameraChangeSwitch:true,
+				isOneRoom:true
+			}
+		},
+		onShow: function() {
+			
+		},
+		onLoad() {
+			if(this.isOneRoom){
+				this.chatSetShow = true
+			}			 
+		},		
+		methods: {
+			// set end
+			speakerChange(){
+				var _this = this
+				this.audioRoute = this.audioRoute == 1 ? 0 : 1
+				var data = {type:'ar',data:this.audioRoute}
+				this.$parent.setChange(data)
+				if(this.audioRoute==0){					
+					this.audioRouteSwitch = true
+				}else{
+					this.audioRouteSwitch = false
+				}				
+				 
+			},
+			microphoneChange(){				
+				var _this = this
+				this.setAudioCaptureVolume = this.setAudioCaptureVolume == 0 ? 100 : 0	
+				var data = {type:'acv',data:this.setAudioCaptureVolume}
+				this.$parent.setChange(data)
+				if(this.setAudioCaptureVolume==100){					
+					this.setAudioCaptureVolumeSwitch = true
+				}else{
+					this.setAudioCaptureVolumeSwitch = false
+				}		
+			},
+			playMusic(){				
+				var _this = this
+				var data = {type:'musicStart',data:''}
+				if(_this.musicIsPlay){
+					data.type = 'musicStop'
+				}else{
+					data.type = 'musicStart'
+				}
+				setTimeout(function() {
+					_this.musicIsPlay = !_this.musicIsPlay
+				}, 200);
+				this.$parent.setChange(data)
+			},
+			cameraChange(){
+				this.cameraChangeSwitch = !this.cameraChangeSwitch
+				
+				this.$parent.isCamera = this.cameraChangeSwitch
+				console.log(this.cameraChangeSwitch,'this.cameraChangeSwitch---')
+				// if(!this.cameraChangeSwitch){
+				// 	this.cameraCut = 0
+				// }
+				var data = {type:'camera',data:this.cameraChangeSwitch}
+				this.$parent.setChange(data)
+			},
+			//this.$refs.maxTxPlayView.startLocalPreview();
+			 
+			chatOutSet(d){
+				this.chatSetShow = false
+				this.musicIsPlay = false
+				var data = {type:'musicStop',data:''}
+				//console.log('join1111')
+				if(d == 'join'){
+					//console.log('join2222')
+					this.$parent.join()
+					//console.log('join3333')
+				}
+				
+				if(this.isOneRoom){
+					this.$parent.join()
+				}
+				this.$parent.setChange(data)
+				this.isOneRoom = false
+				this.$parent.chatToolShow = true
+				this.$parent.chatSetBgShow = false
+				
+			},
+			chatSetOpen(){
+				this.chatSetShow = true
+				this.$parent.chatSetBgShow = true
+			},
+			cameraSwitchClick(i){
+				var data = {type:'cameraFb',data:''}
+				if(i==0){
+					this.$parent.isBefore = true
+				}else{
+					this.$parent.isBefore = false
+				}
+				
+				if(this.cameraCut != i){
+					this.$parent.setChange(data)
+				}
+					
+				this.cameraCut = i
+			},
+			closeTap(){
+				this.btnTap = true
+			},
+			closeTapEnd(){
+				this.btnTap=false;
+			}
+		}
+	}
+</script>
+

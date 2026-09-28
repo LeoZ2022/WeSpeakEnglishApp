@@ -1,0 +1,134 @@
+{
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "Home" 
+			},
+			"enablePullDownRefresh":true
+		},{
+			"path": "pages/quickRoom/index",
+			"style": {
+				"navigationBarTitleText": "Quick Room ID"
+			}
+		},{
+			"path": "pages/my/index",
+			"style": {
+				"navigationBarTitleText": "Me"
+			}
+		},
+		{
+			"path": "pages/login/index",
+			"style": {
+				"navigationBarTitleText": "Login",
+				"app-plus":{
+					"titleNView":false
+				}
+			}
+		},
+		{
+			"path": "pages/login/forgotPwd",
+			"style": {
+				"navigationBarTitleText": "Forgot password",
+				"app-plus":{
+					"titleNView":false
+				}
+			}
+		},
+		{
+			"path": "pages/room/index",
+			"style" : {
+			    "app-plus" : {
+			        "titleNView" : false,
+					"popGesture": "none",
+					"softinputMode":"adjustResize"
+			    }
+			}
+		},
+		{
+			"path": "pages/room/hub",
+			"style": {
+				"app-plus":{
+					"titleNView":false
+				}
+			}
+		},{
+			"path": "pages/room/comments",
+			"style": {
+				"navigationBarTitleText": "Rate your parter",
+				"app-plus" : {
+					"popGesture": "none"
+				}
+			}
+		},{
+			"path": "pages/room/noStart",
+			"style": {
+				"app-plus":{
+					"titleNView":false
+				},
+				"enablePullDownRefresh":true
+			}
+		},{
+			"path": "pages/plusScan/scan",
+			"style":{
+				"app-plus":{ //去掉顶部的title
+					"titleNView":false					
+				}
+			}
+		},{
+			"path": "pages/login/privacy",
+			"style":{
+				"app-plus":{ //去掉顶部的title
+					"titleNView":false					
+				}
+			}
+		},{
+			"path": "pages/login/agreement",
+			"style":{
+				"app-plus":{ //去掉顶部的title
+					"titleNView":false					
+				}
+			}
+		},{
+			"path": "pages/login/unsubscribe",
+			"style":{
+				"app-plus":{ //去掉顶部的title
+					"titleNView":false					
+				}
+			}
+		}
+	],
+	"tabBar": {
+		"color":"#5d73bc",
+		"selectedColor":"#5d73bc",
+		"borderStyle":"white",
+		"backgroundColor":"#ffffff",
+		"list": [
+			{
+				"pagePath":"pages/index/index",
+				"text":"Home",
+				"iconPath":"static/home.png",
+				"selectedIconPath":"static/homeC.png"
+			},
+			{
+				"pagePath":"pages/quickRoom/index",
+				"text":"Quick Room ID",
+				"iconPath":"static/quick.png",
+				"selectedIconPath":"static/quickC.png"
+			},
+			{
+				"pagePath":"pages/my/index",
+				"text":"Me",
+				"iconPath":"static/my.png",
+				"selectedIconPath":"static/myC.png"
+			}
+		]	
+	 },
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "hx-navbar",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8",
+		"navigationStyle": "custom"
+	}
+}

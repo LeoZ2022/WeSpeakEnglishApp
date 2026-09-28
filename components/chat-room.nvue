@@ -1,0 +1,266 @@
+<template>
+  <view class="chatBlock" :class="{chatOut: !chatShow, chatIn: chatShow}">
+	  <view class="chatMask" @click="chatOut" v-if="chatShow"></view>
+    <scroll-view class="messageBlock"  scroll-y="true" enable-back-to-top="true" :scroll-top="chatScrollTop" scroll-with-animation="true" @click="hideKeyboard">
+      <view class="messageMain" id="message">
+		<image src="@/static/noMsg.png" mode="aspectFit" v-if="!messageList[0]" style=" width: 750rpx; height: 29rpx; margin: 80px 0 0 -22rpx;"></image>
+        <block v-for="(item, index) in messageList" :key="index">
+			
+			<block v-if="item.msgType==1">
+				<view class="messageBox messageBoxMy" >
+					<view class="messageContent messageContentMy">
+						<text class="messageContentText messageContentTextMy"  :class="{'messageContentText_learner': userInfo.user_type==1,'messageContentText_tutor': userInfo.user_type==2}">{{item.message}}</text>
+						<!-- 需要颜色 -->
+					</view>
+					<view class="messageUserInfo messageBoxMyInfo">
+						<block v-if="userInfo.user_type==1"><text class="messageUserPhoto messageBoxMyPhoto ly-icon" :class="{'messageUserPhoto_learner': userInfo.user_type==1,'messageUserPhoto_tutor': userInfo.user_type==2}">&#xe61a;</text></block>
+						<block v-if="userInfo.user_type==2"><text class="messageUserPhoto messageBoxMyPhoto ly-icon" :class="{'messageUserPhoto_learner': userInfo.user_type==1,'messageUserPhoto_tutor': userInfo.user_type==2}">&#xe61e;</text></block>
+						<!-- 需要颜色 -->
+						<text class="messageUserName">Me</text>
+					</view> 
+				</view>
+			</block>
+			<block v-else>
+				<view class="messageBox">
+					<view class="messageUserInfo">
+						
+						<block v-if="userInfo.user_type==2"><text class="messageUserPhoto ly-icon" :class="{'messageUserPhoto_tutor': userInfo.user_type==1,'messageUserPhoto_learner': userInfo.user_type==2}">&#xe61a;</text></block>
+						<block v-if="userInfo.user_type==1"><text class="messageUserPhoto ly-icon" :class="{'messageUserPhoto_tutor': userInfo.user_type==1,'messageUserPhoto_learner': userInfo.user_type==2}">&#xe61e;</text></block>
+						
+						<text class="messageUserName">Partner</text>
+					</view>
+					<view class="messageContent">
+						<text class="messageContentText"  :class="{'messageContentText_tutor': userInfo.user_type==1,'messageContentText_learner': userInfo.user_type==2}">{{item.message}}</text>
+					</view>
+					 
+				</view>
+			</block>
+			
+        </block> 
+    
+      </view>
+    </scroll-view> 
+    <view class="chatInput">
+		<input type="text" :adjust-position="false" class="chatInputBox" @blur="match" v-model="message" @confirm="sendMessage" confirm-type="send" placeholder="Text your message" />
+		<text class="chatInputIcon ly-icon" @click="sendMessage()">&#xe627;</text>
+	</view>
+	
+    <text class="ly-icon closeChat" @click="chatOut">&#xe625;</text>
+	
+  </view>
+</template>
+
+<script>
+const trtcCloud = uni.requireNativePlugin('TX-TRTCCloud')
+const dom = weex.requireModule('dom');
+dom.addRule('fontFace', {
+	fontFamily: 'lyicon',
+	src: "url('/static/iconFont/iconfont.ttf')"
+});
+export default {
+  name: 'chat-room',
+
+  data() {
+    return {
+      
+      chatroomId: '',
+      
+      userInfo: '',
+      message: '',            // 用户输入的，不用动
+      messageList: [],        // 消息列表
+
+      chatScrollTop: 0,
+	  chatShow: false
+    }
+  },
+  
+  props: {
+    roomId: { type: String, default() { return '' } },
+	msg:''
+  },
+  
+  watch: {
+    roomId(val) {
+      console.log('watch roomId', roomId);
+      this.chatroomId = val
+    }
+  },
+  
+  created() { 	
+  	this.userInfo = this.$store.state.userInfo	
+  },
+  onUnload() {
+     
+  },
+  mounted() {
+    this.$nextTick(() => {
+		var oldMsgName = 'msg'+ this.roomId
+		var chatMsgOld = JSON.parse(uni.getStorageSync(oldMsgName))
+		if(chatMsgOld){
+			this.messageList = chatMsgOld
+		}
+		console.log(chatMsgOld,'chatMsgOld---------')
+    })
+	 
+  },
+  
+  destroyed() {
+  },
+  methods: {
+	match(){
+		console.log('------121---')
+		uni.onWindowResize((res) => {
+		    console.log('变化后的窗口宽度=' + res.size.windowWidth)
+		    console.log('变化后的窗口高度=' + res.size.windowHeight)
+		})
+	},
+	addMsgOld(){
+		var oldMsgName = 'msg'+ this.roomId
+		uni.setStorageSync(oldMsgName, JSON.stringify(this.messageList));
+	},
+	chatOut(){
+		this.chatShow = false
+		this.$parent.isShowChat = false
+		this.$parent.newMsgShow = false
+		this.hideKeyboard()
+	},
+	scrollHeight(type){
+		
+		var _this = this
+		const query = uni.createSelectorQuery().in(this);
+		
+		query.select('#message').boundingClientRect(data => {
+			console.log(data.height)
+			if(data.height>220){
+				if(type == 1){
+					_this.chatScrollTop = data.height -220
+				}else{
+					_this.chatScrollTop = data.height -160
+				}
+			}
+			
+		}).exec();
+		
+		console.log(_this.chatScrollTop)
+	
+	},
+	switchChat(type){
+		var _this = this
+		 this.chatShow = !this.chatShow 
+		 if(this.chatShow){
+			 this.scrollHeight(type)
+		 }
+	},
+	hideKeyboard(){
+		uni.hideKeyboard();
+	},
+	msgPush(msg){
+		console.log(msg,'组件msg')
+		if(msg.type=='onRecvCustomCmdMsg'){
+			this.messageList.push({
+			  nickName: msg.userId,
+			  roomNo: this.roomNo,
+			  userId: msg.userId,   // send message member
+			  date: new Date(),
+			  message: msg.message,
+			  messageType: msg.type,
+			  isSelf: true
+			})
+			this.addMsgOld()
+			if(this.chatShow){
+				this.scrollHeight()
+			}
+		}else{
+			console.log(msg.message,'有延迟了。。。。')
+		}
+		
+	},
+    sendMessage(e, type, socketClient) {
+		console.log(this.messageList,'messageList') 
+		console.log('message---：', this.message);
+		console.log('message---：', e);
+		var message = this.message
+		if(message){
+			console.log(1111111111)
+			trtcCloud.sendCustomCmdMsg(1,message,true,false);
+			console.log(2222222)
+			// 超过200条消息，就删除最早的1条再加入新消息
+			if (this.messageList.length > 200) {
+				this.messageList.shift()
+			}
+			this.messageList.push({
+				nickName: this.userInfo.username,
+				roomNo: this.roomNo,
+				userId: this.userInfo.id,   // send message member
+				date: new Date(),
+				message: message,
+				messageType: '',
+				isSelf: true,
+				msgType:1
+			})
+			this.addMsgOld()
+			if(this.chatShow){
+				this.scrollHeight()
+			}
+			  // 清空输入框的内容
+			  // console.log('清空输入框的内容');
+			this.message = ''
+		}else{
+			uni.showToast({
+			    title: "Can't be empty!",
+				icon:'none'
+			});
+		}
+			
+			
+  //     let message = (e.detail && e.detail.value) ? e.detail.value : e
+  //     if (typeof message !== 'string') return console.log('message not a string', message)
+  //     if (message && message.trim()) {        
+  //       // websocket code can put here // 
+  //       let messageType = type || ''
+  //       if (message.indexOf('{') === 0 && message.lastIndexOf('}' !== 0)) {
+  //         message = message.replace(/{|}/g, '')
+  //         messageType = 'Join'
+  //       }
+  //       // 超过200条消息，就删除最早的1条再加入新消息
+  //       if (this.messageList.length > 200) {
+  //         this.messageList.shift()
+  //       }
+  //       this.messageList.push({
+  //         nickName: this.userInfo.username,
+  //         roomNo: this.roomNo,
+  //         userId: this.userInfo.id,   // send message member
+  //         date: new Date(),
+  //         message: message,
+  //         messageType: messageType,
+  //         isSelf: true,
+		// 	msgType:1
+  //       })
+		// this.addMsgOld()
+  //       // 清空输入框的内容
+  //       // console.log('清空输入框的内容');
+  //       this.message = ''
+  //     } else {
+  //       console.log('message socketClient', message, this.socketClient, socketClient);
+  //     }
+    }
+    
+  }
+
+}
+</script>
+
+<style lang="scss">
+@import './chat-room';
+.ly-icon {
+	font-family: lyicon;
+}
+.chatMask{
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: 640rpx;
+	top: 0; 
+	opacity: .2;
+}
+</style>

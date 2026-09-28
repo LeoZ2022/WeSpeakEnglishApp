@@ -1,0 +1,135 @@
+
+$screen-width: 750rpx;
+.chatBlock{
+	background-color: #fff; 
+	border-top-right-radius: 10px;
+	border-top-left-radius: 10px;
+	height: 290px;
+	padding: 0 10px;
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: 0;
+} 
+
+.chatOut{
+	transform: translateY(290px);
+	transition:transform .3s ease-out; 
+} 
+.chatIn{
+	transform: translateY(0px);
+	transition:transform .3s ease-out;  
+} 
+.chatInput{
+	border-top: 1px solid #eee;
+}
+.chatInputBox{
+	padding: 0 0 0 10px !important;
+	height: 50px; 
+	font-size: 13px; 
+	margin-right: 35px;
+}
+.chatInputIcon{
+	position: absolute;
+	right: 8px;
+	top: 9px;
+	color: #5d73bc; 
+	font-size: 24px;
+}
+.messageBlock{
+	height: 220px;
+	margin: 10px 0; 
+}
+.messageBox{
+	display: flex;
+	flex-direction: row;
+	margin-right: 50px;
+	text-align: center;
+	margin-bottom: 10px; 
+}
+.messageBox:last-child{
+	margin-bottom: 0;
+}
+.messageBoxMy{
+	margin-left: 50px;
+	margin-right: 0;
+}
+.messageUserInfo{
+	width: 50px;
+	text-align: center;
+	align-items: center;
+}
+.messageUserPhoto{
+	width: 35px;
+	height: 35px;
+	border-radius: 100%;
+	line-height: 35px;
+	
+	font-size: 21px;
+	margin-bottom: 3px;
+	align-items: center;
+	text-align: center;
+}
+.messageUserPhoto_learner{
+	background-color: #f9eff0;
+	color: #e87179;
+}
+.messageUserPhoto_tutor{
+	
+	background-color: #f1f3f9;
+	color: #5d73bc;
+}
+.messageUserName{
+	font-size: 13px;
+	color:#4e3d37;
+	text-align: center;
+	display: -webkit-box;
+	overflow: hidden;
+	word-break: break-all;
+	text-overflow: ellipsis;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 1;
+	line-height: 15px;
+}
+.messageContent{
+	flex: 1;
+	display: flex;			
+	justify-content: flex-start; 
+	flex-flow:row;
+	
+}
+.messageContentMy{
+	justify-content: flex-end; 
+}
+.messageContentText{
+	line-height: 22px;
+	font-size: 13px;
+	text-align: left;
+	
+	border-radius: 7px;
+	padding: 6px 12px;
+	
+	 
+}
+.messageContentTextMy{
+	text-align: right;
+	
+}
+.messageContentText_tutor{
+	background-color: #f1f3f9;
+	color: #5d73bc;
+}
+.messageContentText_learner{
+	background-color: #f9eff0;
+	color: #e87179;
+}
+.messageMain{
+	padding: 12px 0; 
+}
+.closeChat{
+	position: absolute;
+	right: 10px;
+	top: 9px;
+	font-size: 12px;
+	line-height: 12px;
+}

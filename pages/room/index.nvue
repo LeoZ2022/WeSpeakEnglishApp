@@ -1,0 +1,1317 @@
+<template>
+	<view class="chatBox">
+		<TX-PlayView
+			ref="maxTxPlayView" 
+			class="maxTxPlayView" 
+			:style="{height:windowHeight}"
+			:whiteness="beauty"
+			:ruddiness="beauty"
+			:beauty="beauty"
+			beatyStyle=0
+			:filterFileName="filterFileName"
+		></TX-PlayView>
+		
+		
+		<view class="playNoBgBox":style="{height:windowHeight}">
+			<image src="@/static/noPlay.png" v-if="!isJoin" class="playNoBg" mode="aspectFit" :style="{height:windowHeight}"></image>
+		</view>
+		
+		<view style="width: 750rpx; position: fixed; left: 0; top: 0;" :style="{height:windowHeight}">
+			<movable-area style="width: 750rpx;" id="movableBox" :style="{height:windowHeight}">
+				<movable-view :x="x" :y="y" direction="all" style="width: 120px; height: 180px;">
+					<TX-PlayView ref="minTxPlayView" class="minTxPlayView" :class="{'isJoinMini':isJoin}" :style="minStyle"  @click="changeMode()"></TX-PlayView>
+				</movable-view>
+			</movable-area>
+		</view>
+		
+		<!-- <view class="chatRoomTipsBox" :style="{height:windowHeight-85}" > -->
+		
+		<view class="chatRoomTipsBox" :class="{'chatRoomTipsBoxActive':chatRoomTipsShow}">
+			<view v-if="chatRoomTipsShow" >
+				<view class="chatRoomTips" v-if="!chatTipsTextShow">
+					<text class="chatRoomTipsText" style="font-size: 40rpx; line-height: 52rpx;">{{chatRoomTipsText}}</text>
+					<text class="chatRoomTipsText" @click="chatTipsTextClick()" style="margin-top: 90rpx; text-decoration: underline; font-weight: bold;">What if my partner quits?</text>
+				</view>
+				
+				<view class="chatRoomTips" v-if="chatTipsTextShow">
+					
+					<view v-if="userInfo.user_type == 2">
+					      <!--<text class="chatRoomTipsText" style="text-align: left; ">The tuition fee policy is as below:</text>
+					        <text class="chatRoomTipsText" style="text-align: left; padding-top: 24rpx; color: #54b360; font-weight: bold;">FOR TUTOR</text> -->
+						  <text class="chatRoomTipsText" style="text-align: left; padding-top: 24rpx;">Just wait for a while. There's no need to quit and re-enter this room. If your partner cannot return within 5 minutes, please exit the chat.</text>
+					      <!--<text class="chatRoomTipsText" style="text-align: left; padding-top: 24rpx;">If your partner quits accidentally between 15 and 30 mins the chat starts and never returns,  you can get a 50% tuition fee. No income for any chat less than 15 mins.  </text>-->
+					</view> 
+					
+					<view v-else>
+					    <text class="chatRoomTipsText" style="text-align: left; ">The refund policy is as below:</text>      
+						<!-- <text class="chatRoomTipsText" style="text-align: left; padding-top: 24rpx; color: #54b360; font-weight: bold;">FOR LEARNER </text> -->
+						<text class="chatRoomTipsText" style="text-align: left; padding-top: 24rpx;">If your partner quits within 15 mins the chat starts, your payment will be fully refunded.</text>
+						<text class="chatRoomTipsText" style="text-align: left; padding-top: 24rpx;">If your partner quits between 15 to 30 mins, 50% of your payment will be refunded.</text>
+						<text class="chatRoomTipsText" style="text-align: left; padding-top: 24rpx;">Please check your account later.</text>
+					
+					</view>
+					<text class="chatRoomTipsText" @click="chatTipsTextHide()" style="margin-top: 40rpx; text-decoration: underline; font-weight: bold; font-weight: bold;">Back</text>
+				</view>
+			</view>
+		</view>
+		
+		
+		<view class="closeCountDownRow"  :class="{'isIphoneX':isIphoneX}">
+			<rootime :roomId="roomId" ref="sockes" class="closeCountDownRowBox" :class="{'closeCountDownShow': isJoin}"></rootime>
+		</view>
+		<view class="chatTool">
+			<view class="chatToolBox" v-if="chatToolShow">
+				<view class="chatToolItem">
+					<button class="chatMsgBtn" @click="openChat"><text
+							class="chatMsgBtnIcon ly-icon">&#xe617;</text></button>
+				</view>
+				<view class="chatToolItem">
+					<button class="chatEndBtn" @click="outRoom"><text
+							class="ly-icon chatEndBtnIcon">&#xe61d;</text></button>
+				</view>
+				<view class="chatToolItem">
+					<button class="chatSetBtn" @click="chatSetOpen"><text
+							class="ly-icon chatSetBtnIcon">&#xe61c;</text></button>
+				</view>
+			</view>
+		</view>
+		
+		<view class="newMsg">
+			<view class="newMsgBox" v-if="newMsgShow && !isShowChat">
+				 
+				<text v-if="userInfo.user_type != 1" class="ly-icon newMsgIcon" @click="openChat">&#xe61a;</text>
+				<text v-else class="ly-icon newMsgIcon newMsgIconBlue" @click="openChat">&#xe61e;</text>
+				
+				<text class="ly-icon newMsgClose" :class="{'newMsgCloseBlue': userInfo.user_type == 1}" @click="newMsgClose">&#xe622;</text>
+				<view class="newMsgMain" @click="openChat">
+					<text class="newMsgText" :class="{'newMsgTextBlue': userInfo.user_type == 1}">{{newMsgData}}</text>
+				</view>
+			</view>
+			
+			<view class="newNoticeBox" v-if="newNotice.show" @click="newNoticeClose">
+				<text class="ly-icon newNoticeIcon">&#xe610;</text>
+				<text class="ly-icon newNoticeClose">&#xe622;</text>
+				<view class="newNoticeMain">
+					<text class="newNoticeText">{{newNotice.msg}}</text>
+				</view>
+				 
+			</view>
+		</view>
+		<text class="reportBtn" v-if="isJoin" @click="reportOpen">Report Abuse</text>
+		<view class="footChat">
+			<chat-room id="chatRoom" ref="chatRoom" :msg="msgData" class="chat-room" :roomId="roomId"></chat-room>
+		</view>
+
+		<!-- 设置 -->
+		<view class="chatSetBg" :style="{height:windowHeight}" :class="{'chatSetBgShow':chatSetBgShow}" ></view>
+		<chatSet ref="chatSet" ></chatSet>
+		
+		<report ref="report"></report>
+		
+		
+		 <!--<text style="position: fixed; padding: 0; line-height: 24rpx; left: 0; bottom: 0; color: #fff; background:  rgba(0,0,0,.7);;">
+			{{roomId}}{{socketState}}{{error}}/V1.2
+			 act:{{socketJson.act}}
+		 	msg:{{socketJson.msg}}
+		 	class_id:{{socketJson.class_id}}
+		 	classin_id:{{socketJson.classin_id}}
+			class_time:{{socketJson.class_time}}
+			userId:{{userId}}
+			role:{{role}}
+			{{chatSetBgShow}} 
+		</text>
+		-->
+			
+	</view>
+</template>
+
+<script>
+	import permitApp from '@/common/permitApp.js'
+	const io = require('@/static/weapp.socket.io.js')
+	const socket = io('http://app.wespeakenglish.chat:2120')
+	 
+	import { appId, appKey} from '@/common/app.js'
+	import chatRoom from "@/components/chat-room"
+	import chatSet from "@/components/chatSet"
+	import rootime from "@/components/rootime"
+	import { inRoom, outRooms, getClassOne } from '@/models/index.js'
+	import report from '@/components/report'
+	
+	const trtcCloud = uni.requireNativePlugin('TX-TRTCCloud')
+	const dom = weex.requireModule('dom');
+	dom.addRule('fontFace', {
+		fontFamily: 'lyicon',
+		src: "url('/static/iconFont/iconfont.ttf')"
+	});
+	export default {
+
+		components: {
+			chatRoom,
+			chatSet,
+			rootime,
+			report
+		},
+
+		data() {
+			return { 
+				x: 0,
+				y: 2,
+				old: {
+					x: 0,
+					y: 0
+				},
+				roomIdS: [666, 888, 686, 868],
+				roomId: '',
+				players: [],
+				hisId: null,
+				userName: '',
+				userId: '',
+				windowHeight: 0,
+				windowWidth:0,
+				role: 20,
+				beauty: 5,
+				mode: "me", //大小窗口显示模式
+				enable: true,
+				scene: 0,
+				isIphoneX:false,
+				
+				appId: appId,
+				appKey: appKey,
+				filterFileName: "",
+				lianMaienable: true,
+				userInfo: '',
+				showMask: true,
+				switchSmallStatus:true,
+				countDownTime:'00:00',
+				audioRoute:0,
+				newMsgData:'',
+				newMsgShow:false,
+				isShowChat:false,
+				socketJson:'',
+				// 聊天窗口倒计时 Upcoming ,Timer ,Close in
+				countDownState:'Upcoming',
+				classInfo:'',
+				classStartTime:'',
+				haveClassTime:'',
+				timelen:'',
+				isClassStart:false,
+				newNotice:{
+					show:false,
+					msg:''
+				},
+				chatRoomTipsText:'If your partner does not enter the chatroom within 5 minutes, the chatroom will be closed.',
+				chatRoomTipsShow:false,
+				chatToolShow:false,
+				isCamera:true, //默认开启
+				isJoin:false,
+				chatSetBgShow:false,
+				isBefore:true,
+				chatTipsTextShow:false,
+				error:'',
+				socketState:'',
+				
+				isJoinRequest:false
+			}
+		},
+		onShow: function() {
+			var _this = this
+			console.log('socket----')
+			socket.on('connect', () => {
+				socket.emit('login', this.userId);
+				_this.socketState = socket.connected
+				console.log('连接成功22222')
+			}) 
+			socket.on('message', function(msg) {
+				console.log("msg：" + msg);
+			});
+			socket.on('new_msg', function(msg) { 
+				_this.$store.commit("newSocket", msg)
+				// _this.$refs.sockes.socketMsg(msg); 
+			});
+			socket.on('update_online_count', function(online_stat) {
+				console.log(online_stat, 33333);
+			});
+			
+			socket.on('connect_error', (error) => {
+				this.error = error
+				console.log(error,'socket错误拉------')
+			});
+			console.log('socket----end') 
+		    plus.navigator.setFullscreen(true);
+			uni.setKeepScreenOn({
+			    keepScreenOn: true
+			});
+			console.log('room show-----')
+			if(this.isJoin == true){
+				this.join()
+				trtcCloud.setAudioRoute(this.$refs.chatSet.audioRoute)
+				trtcCloud.setAudioCaptureVolume(this.$refs.chatSet.setAudioCaptureVolume);
+			}
+			// 更新房间信息
+			this.getClassInfo()
+			// if(!this.$refs.sockes.isOverStart){
+			// 	this.getClassInfo()
+			// } 
+			
+		},
+		onHide: function() { 
+			console.log('room Hide')
+			
+			this.$refs.maxTxPlayView.leaveRoom();
+			this.$refs.minTxPlayView.leaveRoom();
+		},
+		onUnload() {
+		    plus.navigator.setFullscreen(false);
+		},
+		onLoad(params) { 
+			var isAndroid = false ;
+			if (uni.getSystemInfoSync().platform == 'android') {
+				isAndroid = true ;//是不是安卓系统标记\
+			}
+			 
+			
+			
+			
+			var userId = this.$store.state.userInfo.id
+			
+			this.roomId = params.roomId
+			var _this = this
+			
+			if(plus.navigator.hasNotchInScreen()){
+				//有刘海屏幕
+				this.isIphoneX = true
+			}else{
+				//无刘海屏幕
+				this.isIphoneX = false
+			}
+			// 获取上一个页面传入的参数
+			this.windowHeight = uni.getSystemInfoSync().windowHeight;
+			this.windowWidth = uni.getSystemInfoSync().windowWidth;
+			this.x = uni.getSystemInfoSync().windowWidth - 122
+			this.userInfo = this.$store.state.userInfo
+			this.userName = this.userInfo.username
+			this.userId = this.userInfo.id
+			//获取课程信息
+			this.getClassInfo()	
+			
+			this.$nextTick(()=>{
+				//var socket = io.connect(); 
+				socket.on('connect', () => {
+					socket.emit('login', userId);
+					_this.socketState = socket.connected
+					console.log('check 2', socket.connected); 
+					console.log('连接成功22222')
+				}) 
+				socket.heartbeatTimeout = 20000;
+				socket.on('message', function(msg) { 
+				});
+				socket.on('new_msg', function(msg) {
+					 
+					_this.$store.commit("newSocket", msg)
+					// _this.$refs.sockes.socketMsg(msg); 
+				});
+				socket.on('update_online_count', function(online_stat) {
+					console.log(online_stat, 33333);
+				});
+				
+				socket.on('connect_error', (error) => {
+					this.error = error
+					console.log(error,'socket错误拉------')
+				});
+			})
+			
+		},
+		onBackPress() {
+			this.$refs.maxTxPlayView.leaveRoom();
+			this.$refs.minTxPlayView.leaveRoom();
+			
+			uni.setKeepScreenOn({
+			    keepScreenOn: false
+			});
+		},
+		created() {
+			
+		},
+		onReady() {
+			//this.join();
+			var _this = this
+			 
+			
+			this.chatSetOpen()
+		},
+		onNavigationBarButtonTap() {
+			uni.navigateBack({
+				delta: 1,
+				animationType: 'pop-out',
+				animationDuration: 200
+			});
+		},
+		methods: {
+			reportOpen(){
+				this.$refs.report.reportShow = true
+				this.$refs.report.roomId = this.roomId
+			},
+			tipsMusic(){
+				console.log('mp3-----------------------')
+				trtcCloud.startPlayMusic({
+					path: plus.io.convertLocalFileSystemURL('/static/prompt.mp3'),
+					loopCount: 0,
+					ID: 6
+				})
+			},
+			chatTipsTextClick(){
+				this.chatTipsTextShow = true
+			},
+			chatTipsTextHide(){
+				this.chatTipsTextShow = false
+			},
+			requestAndroidPermission(permissionID) {
+				return new Promise((resolve, reject) => {
+					plus.android.requestPermissions(
+						permissionID, // 理论上支持多个权限同时查询，但实际上本函数封装只处理了一个权限的情况。有需要的可自行扩展封装
+						function(resultObj) {
+							resolve(resultObj);
+						},
+						function(error) {
+							console.log('申请权限错误：' + error.code + " = " + error.message);
+							resolve({
+								code: error.code,
+								message: error.message
+							});
+						}
+					);
+				});
+			},
+			
+			newNoticeOpen(d){
+				this.newNotice.show = true
+				this.newNotice.msg = d
+				var _this = this
+				setTimeout(function(){
+					console.log('定时---6000--------')
+					_this.newNotice.show = false
+				}, 6000);
+				
+			},
+			newNoticeClose(d){
+				this.newNotice.show = false
+			},
+			
+			getClassInfo(){
+				var _this = this
+				getClassOne(_this.roomId).then((res) => {
+					if(res.order_status == 1){
+						_this.classInfo = res
+						_this.timelen = res.timelen*60
+						_this.classStartTime = res.datetime - res.now_time
+						_this.haveClassTime = res.timelen*60 - res.class_time_len
+						this.$refs.sockes.getClassInfo(res);
+					}else{
+						uni.showModal({
+							// title: 'Tips',
+							content: 'The chat is over or invalid.',
+							showCancel: false,
+							confirmText: 'Back',
+							success: function(res) {
+								if (res.confirm) {
+									uni.navigateBack()
+								}
+							}
+						});
+					}
+				})
+			},
+			switchAudioRoute(){
+				this.audioRoute = this.audioRoute == 1 ? 0 : 1
+				trtcCloud.setAudioRoute(this.audioRoute);
+			}, 
+			chatSetOpen() {				
+				this.$refs.chatSet.chatSetOpen();
+			},
+			cameraSwitchClick(i) {
+				this.cameraCut = i
+			},
+			closeTap() {
+				this.btnTap = true
+			},
+			closeTapEnd() {
+				this.btnTap = false;
+			},
+			// 设置
+			setChange(d){	
+				//console.log(d,'d------')
+				if(d.type == 'acv'){
+					console.log(d.data,'acv------')
+					trtcCloud.setAudioCaptureVolume(d.data);
+				} else if(d.type == 'ar'){	
+					console.log(d.data,'ar------')
+					trtcCloud.setAudioRoute(d.data)
+				} else if(d.type == 'musicStart'){		 
+					trtcCloud.startPlayMusic({
+						path: plus.io.convertLocalFileSystemURL('/static/test.mp3'),
+						loopCount: 50,
+						ID: 5
+					})
+				} else if(d.type == 'musicStop'){
+					//console.log(d.data,'musicStop------')
+					trtcCloud.stopPlayMusic({
+						ID: 5
+					})
+				}else if(d.type == 'camera'){
+					console.log(d.data,'camera------')
+					
+					this.ifCamera(d.data)	
+				}else if(d.type == 'cameraFb'){
+					trtcCloud.switchCamera();
+				}
+				 
+				
+				
+			},
+			outRoom(type,t) {
+				console.log('课程结束了3333。。。。。。')
+				var _this = this
+				var tipsText = 'The chat is over.'
+				
+				
+				let pages = getCurrentPages(); // 当前页面
+				let beforePage = pages[pages.length - 2]; // 前一个页面
+				if(t){
+					tipsText = t
+				}
+				if(type == 'ok'){
+					console.log('课程结束了4444。。。。。。')
+					_this.$refs.maxTxPlayView.leaveRoom();
+					_this.$refs.minTxPlayView.leaveRoom();
+					_this.isClassStart = false
+					uni.setKeepScreenOn({
+						keepScreenOn: false
+					});
+					
+					uni.showModal({
+						// title: 'Tips',
+						content: tipsText,
+						showCancel: false,
+						confirmText: 'Rate your partner',
+						success: function(res) {
+							if (res.confirm) {
+								//move 3 lines up to fix trtc not end during rating issue 20260220		
+								outRooms({classin_id:_this.roomId,act:0}).then((res) => {
+									console.log(res,'完成课程，退出房间了')
+								})
+								
+								setTimeout(function() {
+									uni.navigateTo({
+										url: '/pages/room/comments?classId='+_this.roomId
+									})
+								}, 1000);
+					
+							}
+						}
+					});
+				}else if(type=='quick'){
+					_this.$refs.maxTxPlayView.leaveRoom();
+				}else{
+					var outTipsText = ''
+					if(_this.userInfo.user_type == 2){
+						outTipsText = "Please exit the chat in a courteous manner, or it is advisable to leave until the 1-minute countdown expires. Except for partner's absence."
+												//outTipsText = 'Improper quit might affect your rating and earning. Please quit in a good manner.'
+					}else{
+						outTipsText = 'Quit & Service fee -\nWithin 10 mins: No fee incurred and full refund. \nBetween 11-30 mins: Full tuition fee deducted.'
+					}
+					
+					uni.showModal({
+						title: 'En Chat',
+						content: outTipsText,
+						cancelText: 'Cancel',
+						confirmText: 'Quit',
+						success: function(res) {
+							if (res.confirm) {
+								_this.$refs.maxTxPlayView.leaveRoom();
+								_this.$refs.minTxPlayView.leaveRoom();
+								outRooms({classin_id:_this.roomId,act:0}).then((res) => {
+									console.log(res,'退出房间了') 
+								})
+								_this.$refs.sockes.beginTime = ''
+								uni.setKeepScreenOn({
+								    keepScreenOn: false
+								});
+								uni.showToast({
+									icon:'none',
+									title: 'Exit the room successfully!' //成功退出房间!
+								});
+								setTimeout(function() {
+									
+									
+									if(_this.isClassStart){
+										// 课程已经开始
+										uni.navigateTo({
+											url: '/pages/room/comments?classId='+_this.roomId
+										})
+									}else{
+										// 课程未开始
+										uni.switchTab({
+											url: '/pages/index/index',
+											success: function() {
+											    beforePage.onLoad(); // 执行前一个页面的onLoad方法
+											}
+										})
+										
+										 
+									}
+									_this.isClassStart = false
+								}, 1000);
+
+							}
+						}
+					});
+				}
+				 
+				
+			},
+			openChat() {
+				this.newMsgShow = false
+				this.$refs.chatRoom.switchChat(1);
+				this.isShowChat = true
+			},
+			changeMode() {
+				this.switchSmallStatus = !this.switchSmallStatus;
+				this.ifCamera()
+				
+			},
+			switchCamera() {
+				trtcCloud.switchCamera();
+			}, 
+			ifCamera(d){
+				console.log('摄像头')
+				var _this = this
+				if(!_this.isJoin){
+					if(d){
+						_this.$refs.maxTxPlayView.startLocalPreview();
+						console.log('aaaaaaaaaaaaaaaaaaaaa----aaaa')
+					}else{
+						console.log(d,'11111111')
+						_this.$refs.maxTxPlayView.stopLocalPreview();
+						console.log('2222222')
+						_this.$refs.minTxPlayView.stopLocalPreview();
+						_this.$refs.minTxPlayView.startRemoteView(_this.hisId)
+						console.log('333333')
+					}
+					
+				}else{
+					if (!_this.switchSmallStatus) {
+						console.log('aaaaaaaaa')
+					 	// stopLocalPreview 停止本地视频采集及预览
+					 	// startLocalPreview 开启本地视频的预览画面
+					 	// startRemoteView(this.hisId) 开始显示远端视频画面
+						
+						trtcCloud.stopLocalPreview();
+						trtcCloud.stopRemoteView(_this.hisId);
+						trtcCloud.startRemoteView(_this.hisId,_this.$refs.minTxPlayView);
+					 	
+						if(_this.isCamera){
+							if(_this.isBefore){
+								console.log('----a---')
+								trtcCloud.startLocalPreview(true,_this.$refs.maxTxPlayView);
+							}else{
+								console.log('----b---')
+								trtcCloud.startLocalPreview(false,_this.$refs.maxTxPlayView);
+							}
+						}
+					 } else {
+						trtcCloud.stopLocalPreview();
+						trtcCloud.stopRemoteView(_this.hisId);
+						trtcCloud.startRemoteView(_this.hisId,_this.$refs.maxTxPlayView);
+						if(_this.isCamera){
+							if(_this.isBefore){
+								console.log('----a---')
+								trtcCloud.startLocalPreview(true,_this.$refs.minTxPlayView);
+							}else{
+								console.log('----b---')
+								trtcCloud.startLocalPreview(false,_this.$refs.minTxPlayView);
+							}
+						}
+						
+						 
+					 }
+				}
+				
+				
+				
+			},
+			newMsgClose(){
+					this.newMsgShow = false
+			},
+			async isIosTips(){
+				
+				var isAndroid = uni.getSystemInfoSync().platform == 'android'
+				if (!isAndroid) {
+					var iscan = await permitApp.req_Permit_any(isAndroid, permitApp.p_ID_anrd.camera, permitApp.p_ID_ios.camera,'camera')
+					var isrecord = await permitApp.req_Permit_any(isAndroid, permitApp.p_ID_anrd.record, permitApp.p_ID_ios.record,'microphone')
+				}
+			},
+			join() {
+				this.isJoin = true
+				var _this = this
+				var that = this
+				//主要步骤如下：
+				//1. 开启本地视频的预览画面，并开启声音
+				// if (this.role == 20) {
+				// 	this.enable = true;
+				// } else {
+				// 	this.enable = false;
+				// }
+				//console.log(_this.classStartTime,'classStartTime')
+				console.log('-------------33333---------')
+				that.isIosTips()
+				console.log('-------------22222---------')
+				if(_this.classStartTime<300){
+					
+					if (uni.getSystemInfoSync().platform == 'android') {
+						// 安卓-------------
+						this.requestAndroidPermission(["android.permission.RECORD_AUDIO","android.permission.CAMERA"]).then(function (resultObj) {
+								for (var i = 0; i < resultObj.granted.length; i++) {
+									var grantedPermission = resultObj.granted[i];  
+									console.log('已获取的权限：'+ grantedPermission);  
+									if(grantedPermission == "android.permission.RECORD_AUDIO") {
+										
+										
+											console.log("开启音频");
+											trtcCloud.startLocalAudio();
+										
+									}else if (grantedPermission == "android.permission.CAMERA") {
+										
+											console.log("开启视频");
+											trtcCloud.stopRemoteView(that.hisId,that.$refs.minTxPlayView);
+											that.ifCamera()
+									}
+								}  
+								for (var i = 0; i < resultObj.deniedPresent.length; i++) {  
+									var deniedPresentPermission = resultObj.deniedPresent[i];  
+									console.log('拒绝本次申请的权限：'+ deniedPresentPermission );  
+								}  
+								for (var i = 0; i < resultObj.deniedAlways.length; i++) {  
+									var deniedAlwaysPermission = resultObj.deniedAlways[i];  
+									console.log('永久拒绝申请的权限：'+ deniedAlwaysPermission);  
+									
+								}
+								trtcCloud.setGSensorMode(0);
+								trtcCloud.setVideoEncoderMirror(false);
+								trtcCloud.setVideoEncoderParam({videoResolution:108,videoBitrate:500,videoFps:15,resMode:1});
+									console.log('到这里了zzzzzzzzzzzzzzz');
+								trtcCloud.enterRoom({
+										   roomId:that.roomId,
+										   role:that.role,
+										   scene:that.scene,
+										   appId:that.appId,
+										   appKey:that.appKey,
+										   userId:that.userId 
+										   },result=>{
+											switch (result.type) {
+											  case 'onFirstVideoFrame':
+												console.log('onFirstVideoFrame');
+												break;
+										   
+											  case 'onUserVideoAvailable':
+												break;
+										   
+											case 'onRecvCustomCmdMsg':
+												if (result.message) {
+													that.msgData = result.message
+													console.log(result, "result有新消息++++++")
+													console.log(result.message, "+++++有新消息++++++")
+													that.$refs.chatRoom.msgPush(result);
+													that.newMsgData = result.message
+													that.newMsgShow = true
+												} 
+												//console.log('onRecvCustomCmdMsg新消息');
+												break;
+										   
+											  case 'onUserEnter':
+												that.hisId = result.userId;
+												// 安卓视频----1111
+												that.ifCamera()
+												// 安卓视频----2222
+												break;
+											  case 'onUserSubStreamAvailable':
+												break;
+										   
+											  case 'onUserExit':
+												break;
+											}
+								});
+						 },function (error) {
+							 
+						 });
+						 return;
+					 }
+					
+					// 安卓end---------
+					trtcCloud.setGSensorMode(0);
+					
+					trtcCloud.setVideoEncoderMirror(false);
+					trtcCloud.startLocalAudio();
+					if(that.isCamera){
+						if(that.isBefore){ 
+							trtcCloud.startLocalPreview(true,that.$refs.minTxPlayView);
+						}else{ 
+							trtcCloud.startLocalPreview(false,that.$refs.minTxPlayView);
+						}
+					}
+						
+						
+					
+					trtcCloud.setVideoEncoderParam({videoResolution:108,videoBitrate:500,videoFps:15,resMode:1});
+					trtcCloud.enterRoom({
+					 	userId:that.userId,
+					 	roomId:that.roomId,
+					 	role:that.role,
+					 	scene:that.scene,
+					 	appId:that.appId,
+					 	appKey:that.appKey
+					 },result=>{
+					 	//console.log(result);
+					 	switch (result.type) {
+							
+						
+							
+					 	  case 'onFirstVideoFrame':
+					 		//console.log('onFirstVideoFrame');
+					 		break;
+					 	  case 'onUserVideoAvailable':
+					 		break;
+					    
+							case 'onRecvCustomCmdMsg':
+								if (result.message) {
+									that.msgData = result.message
+									console.log(result, "result有新消息++++++")
+									console.log(result.message, "+++++有新消息++++++")
+									that.$refs.chatRoom.msgPush(result);
+									that.newMsgData = result.message
+									that.newMsgShow = true
+								} 
+								//console.log('onRecvCustomCmdMsg新消息');
+								break;
+						
+					 	  case 'onUserEnter':
+					 		that.hisId = result.userId;
+					 		that.ifCamera()
+							break;
+					 	  case 'onUserExit':
+					 		break;
+					 	}
+					})
+					
+					
+					if(!that.isJoinRequest){
+						inRoom(that.roomId).then((res) => {
+							that.isJoinRequest = true
+							//console.log(res,'join----------ok------')
+						})
+					}
+				}
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	.ly-icon {
+		font-family: lyicon;
+	}
+
+	.chatBox {
+		width: 750rpx;
+		flex: 1;
+		flex-direction: column;
+		background-color: #111111;
+	}
+
+	.header {
+		width: 750rpx;
+		position: fixed;
+		top: 0;
+		left: 0;
+		margin: 20rpx 0;
+		flex-direction: row;
+		justify-content: space-between;
+	}
+
+	.viewIco {
+		margin-left: 20rpx;
+		font-family: iconfont;
+		font-size: 60rpx;
+		color: #FFFFFF;
+	}
+
+	.maxTxPlayView {
+		width: 750rpx;
+		background-color: #111111;
+		position: fixed;
+		top: 0;
+		right: 0;
+		flex-direction: row;
+		justify-content: center;
+		align-items: center;
+	}
+	.playNoBg{
+		width: 750rpx;
+		background-color: #fafafa;
+	}
+	.playNoBgBox{
+		width: 750rpx;
+		position: fixed;
+		top: 0;
+		right: 0;
+		
+	}
+	
+	.chatRoomTipsBox{
+		width: 750rpx; 
+		position: fixed;
+		top: 0;
+		right: 0;
+		flex-direction: row;
+		justify-content: center;
+		align-items: center;
+	}
+	.chatRoomTipsBoxActive{
+		height: 620px;
+	}
+	.chatRoomTips{
+		background: rgba(0,0,0,.7);
+		padding: 45rpx 50rpx;
+		
+		width: 680rpx;
+		border-radius: 20rpx;
+	}
+	.chatRoomTipsText{
+		font-size: 32rpx;
+		color: #fff;
+		text-align: center; 
+		line-height: 46rpx;
+	}
+	.minTxPlayView {
+		background-color: #000000;
+		width: 0;
+		height: 180px; 
+		border-radius: 0 !important;
+		border-style: solid;
+		border-width: 0;
+		border-color: rgba(255, 255, 255, .2);
+		
+	}
+	.isJoinMini{
+		width: 120px;
+		border-width: 1px;
+	}
+
+	.foot {
+		width: 710rpx;
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		margin: 20rpx;
+		align-items: center;
+		justify-content: center;
+		flex-direction: row;
+		flex-direction: column;
+	}
+
+	.circleBoxAll {
+		// flex-direction: row;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.inputBoxAll {
+		flex-direction: row;
+		align-items: center;
+	}
+
+	.inputBox {
+		flex-direction: row;
+		margin: 15rpx;
+		padding: 15rpx;
+		background-color: #FFFFFF;
+		border-radius: 6px;
+	}
+
+	.inputTitle {
+		height: 80rpx;
+		line-height: 80rpx;
+	}
+
+	.input {
+		height: 80rpx;
+		width: 340rpx;
+		font-size: 30rpx;
+		padding: 15rpx;
+	}
+
+	.join {
+		background-color: #DD524D;
+		width: 160rpx;
+		height: 120rpx;
+		line-height: 120rpx;
+		text-align: center;
+		color: #FFFFFF;
+		border-radius: 10px;
+	}
+
+	.circleBox {
+		width: 150rpx;
+		padding: 10rpx 0;
+		margin: 10rpx;
+		align-items: center;
+		flex-direction: column;
+		text-align: center;
+	}
+
+	.circleIco {
+		font-size: 36rpx;
+		width: 64rpx;
+		height: 64rpx;
+		line-height: 64rpx;
+		border-radius: 500px;
+		border-style: solid;
+		border-width: 1px;
+		border-color: #FFFFFF;
+		text-align: center;
+		font-family: iconfont;
+		color: #FFFFFF;
+	}
+
+	.phone {
+		background-color: #c5433a;
+		border-style: solid;
+		border-width: 1px;
+		border-color: #c5433a;
+	}
+
+	.hint {
+		font-size: 22rpx;
+		color: #FFFFFF;
+		padding-top: 20rpx;
+	}
+
+
+	.tools {
+		position: fixed;
+		left: 0;
+		bottom: 100rpx;
+		z-index: 1;
+
+		width: 150rpx;
+	}
+
+	.showSlider {
+		position: fixed;
+		right: 180rpx;
+		bottom: 100rpx;
+		z-index: 12;
+		width: 200rpx;
+	}
+
+
+	.footChat {
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		overflow: hidden;  
+	}
+
+	.openChat {
+		width: 60rpx;
+		height: 60rpx;
+		background-color: #333;
+		color: red;
+		position: fixed;
+		bottom: 30rpx;
+		left: 50rpx;
+	}
+
+	.chatTool {
+		position: fixed;
+		left: 60rpx;
+		right: 60rpx;
+		bottom: 100rpx;
+	}
+	.chatToolBox{
+		flex-direction: row;
+		display: flex;
+		justify-content: center;
+	}
+
+	.chatToolItem {
+		flex: 1;
+		justify-content: center;
+		text-align: center;
+		align-items: center;
+	}
+
+	.chatMsgBtn,
+	.chatEndBtn,
+	.chatSetBtn {
+		border-radius: 100%;
+		padding: 0;
+	}
+
+	.chatMsgBtn,
+	.chatSetBtn {
+		background-color: #fff;
+		width: 100rpx;
+		height: 100rpx;
+		text-align: center;
+		border: none !important;
+	}
+
+	.chatMsgBtnIcon,
+	.chatSetBtnIcon {
+		color: #5d73bc;
+		line-height: 100rpx;
+		font-size: 52rpx;
+		font-weight: bold;
+		width: 100rpx;
+		height: 100rpx;
+		text-align: center;
+	}
+
+	.chatEndBtn {
+		width: 130rpx;
+		height: 130rpx;
+		text-align: center;
+		border: none !important;
+	}
+
+	.chatEndBtnIcon {
+		background-color: #f53b47;
+		width: 130rpx;
+		height: 130rpx;
+		text-align: center;
+		color: #fff;
+		line-height: 130rpx;
+		font-size: 80rpx;
+		border-radius: 100%;
+		font-weight: bold;
+	}
+
+	.ly-icon {
+		font-family: lyicon;
+	}
+
+	.window {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		flex-direction: row;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.windowBox {
+		background-color: #fff;
+		border-radius: 20rpx;
+		width: 660rpx;
+		border-radius: 20rpx;
+	}
+
+	.windowHead {
+		position: relative;
+		margin: 15rpx 0 0 0;
+	}
+
+	.windowClose {
+		position: absolute;
+		right: 0;
+		top: 0;
+		width: 150rpx;
+		height: 100rpx;
+		text-align: center;
+		line-height: 100rpx;
+		font-size: 45rpx;
+		font-weight: bold;
+		color: #c5c1c0;
+	}
+
+	.btnTap {
+		color: #333;
+	}
+
+	.windowTitle {
+		color: #4e3d37;
+		font-size: 40rpx;
+		font-weight: bold;
+		line-height: 100rpx;
+		padding-left: 50rpx;
+	}
+
+	.windowMain {
+		padding: 20rpx 40rpx 20rpx 50rpx;
+	}
+
+	.windowRow {
+		flex-direction: row;
+		display: flex;
+		align-items: center;
+		margin-bottom: 40rpx;
+	}
+
+	.windowRow:last-child {
+		margin: 0;
+	}
+
+	.windowRowLable {
+		width: 220rpx;
+		font-size: 32rpx;
+		color: rgba(78, 61, 55, .7);
+	}
+
+	.windowRowMain {
+		flex: 1;
+		flex-direction: row;
+		display: flex;
+		justify-content: flex-end;
+	}
+
+	.cameraTab {
+		background: #fff;
+		border: 1px solid #e9e9e9;
+		border-radius: 10rpx;
+		color: rgba(78, 61, 55, .5);
+		line-height: 60rpx;
+		display: inline-flex;
+		font-size: 32rpx;
+		padding: 0 20rpx;
+		margin: 0 10rpx;
+	}
+
+	.cameraTabCut {
+		background: #65a46d;
+		border: 1px solid #65a46d;
+		color: #fff;
+	}
+
+	.chatSetOut {
+		transform: translateY(1600rpx);
+		transition: transform .55s ease-out;
+	}
+
+	.chatSetIn {
+		transform: translateY(0rpx);
+		transition: transform .55s ease-out;
+	}
+	.closeCountDownRow{
+			position: fixed;
+			left: 0;
+			right: 0;
+			top: 30rpx;
+			flex: 1;
+			flex-direction: row;
+			display: flex;
+			justify-content:center;
+	}
+	.closeCountDownRowBox{
+		opacity: 0;
+	}
+	.closeCountDownShow{
+		opacity: 1;
+	}
+	.isIphoneX{
+		 height: var(--status-bar-height);
+		        padding-top: 44px;
+		        box-sizing: content-box;
+	}
+	.newMsg{
+		position: fixed;			 
+		left: 40rpx;
+		right: 40rpx;
+		bottom: 280rpx;
+	}
+	
+	
+	.newMsgBox{
+		border-radius: 15rpx;
+		background-color: #fff;
+		padding: 25rpx 80rpx;
+		margin-bottom: 20rpx;
+	} 
+	.newMsgIcon{
+		position: absolute;
+		margin: -12rpx 0 0 -64rpx;
+		color: #f53b47;
+		font-size: 52rpx;
+		
+		
+	}
+	.newMsgIconBlue{
+		color: #5d73bc;
+	}
+	.newMsgClose{
+		position: absolute;
+		right: 25rpx;
+		top: 22rpx;  
+		font-size: 40rpx;
+		line-height: 42rpx;
+		opacity: .7;
+		color: #f53b47;
+	}
+	.newMsgCloseBlue{
+		color: #5d73bc;
+	}
+	
+	.newMsgText{
+		font-size: 32rpx;
+		color: #f53b47;
+	}
+	.newMsgTextBlue{
+		color: #5d73bc;
+	}
+	
+	
+	
+	// 
+	.newNoticeBox{
+		border-radius: 15rpx;
+		background-color: #fff;
+		padding: 25rpx 80rpx;
+		margin-bottom: 20rpx;
+	} 
+	.newNoticeIcon{
+		position: absolute;
+		margin: -12rpx 0 0 -64rpx;
+		color: #fd7100;
+		font-size: 52rpx;
+	}
+	.newNoticeClose{
+		position: absolute;
+		right: 25rpx;
+		top: 22rpx;  
+		font-size: 40rpx;
+		line-height: 42rpx; 
+		opacity: .7;
+		color: #fd7100;
+	}
+	.newNoticeText{
+		font-size: 32rpx;
+		color: #fd7100;
+	}
+	// 
+	.chatSetBg{
+		position: fixed;
+		width: 0;
+		left: 0;
+		top: 0;
+		background: rgba(0,0,0,.7);
+	}
+	.chatSetBgShow{
+		width: 750rpx;
+	}
+	
+	
+	 
+</style>

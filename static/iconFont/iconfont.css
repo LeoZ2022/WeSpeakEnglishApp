@@ -1,0 +1,140 @@
+@font-face {		font-family: "iconfont";		src: url('@/static/iconFont/iconfont.ttf?37');}.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icontubiaozhizuomoban-speak-test-4:before {
+  content: "\e62d";
+}
+
+.iconspeak-test-3:before {
+  content: "\e62e";
+}
+
+.iconspeak-test-bold:before {
+  content: "\e62c";
+}
+
+.iconhome-bold:before {
+  content: "\e62b";
+}
+
+.iconME-0705-BOLD:before {
+  content: "\e629";
+}
+
+.iconquickID-BOLD:before {
+  content: "\e62a";
+}
+
+.iconscan-bold:before {
+  content: "\e628";
+}
+
+.iconsend:before {
+  content: "\e627";
+}
+
+.iconarrow-top:before {
+  content: "\e625";
+}
+
+.iconarrow-bottom:before {
+  content: "\e626";
+}
+
+.iconarrow-top-copy:before {
+  content: "\e62f";
+}
+
+.iconme-b-0520:before {
+  content: "\e623";
+}
+
+.iconme-0520:before {
+  content: "\e624";
+}
+
+.iconsuccess:before {
+  content: "\e621";
+}
+
+.iconfailure:before {
+  content: "\e622";
+}
+
+.iconclose:before {
+  content: "\e620";
+}
+
+.iconset:before {
+  content: "\e61c";
+}
+
+.icontel:before {
+  content: "\e61d";
+}
+
+.icontutor-me:before {
+  content: "\e61e";
+}
+
+.icontutor-me-b:before {
+  content: "\e61f";
+}
+
+.iconnoti:before {
+  content: "\e610";
+}
+
+.iconhome-b:before {
+  content: "\e611";
+}
+
+.iconquick-ID:before {
+  content: "\e612";
+}
+
+.iconscan:before {
+  content: "\e613";
+}
+
+.iconlearner-me-b:before {
+  content: "\e614";
+}
+
+.iconstar-b:before {
+  content: "\e615";
+}
+
+.iconsearch:before {
+  content: "\e616";
+}
+
+.iconmessage:before {
+  content: "\e617";
+}
+
+.iconstar:before {
+  content: "\e618";
+}
+
+.iconspeak-test:before {
+  content: "\e619";
+}
+
+.iconlearner-me:before {
+  content: "\e61a";
+}
+
+.iconquick-ID-b:before {
+  content: "\e61b";
+}
+
+.iconhome:before {
+  content: "\e60e";
+}
+

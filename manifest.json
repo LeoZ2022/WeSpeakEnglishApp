@@ -1,0 +1,191 @@
+{
+    "name" : "En Chat",
+    "appid" : "__UNI__7636BD0",
+    "description" : "",
+    "versionName" : "1.0.24",
+    "versionCode" : 124,
+    "transformPx" : false,
+    /* 5+App特有相关 */
+    "app-plus" : {
+        "usingComponents" : true,
+        "nvueStyleCompiler" : "uni-app",
+        //"nvueStyleCompiler" : "weex",
+        "compilerVersion" : 3,
+        "splashscreen" : {
+            "alwaysShowBeforeRender" : true,
+            "waiting" : true,
+            "autoclose" : true,
+            "delay" : 0
+        },
+        /* 模块配置 */
+        "modules" : {
+            "Push" : {},
+            "Camera" : {}
+        },
+        "compatible" : {
+            "ignoreVersion" : true //true表示忽略版本检查提示框，HBuilderX1.9.0及以上版本支持  
+        },
+        /* 应用发布信息 */
+        "distribute" : {
+            /* android打包配置 */
+            "android" : {
+                "permissions" : [
+                    "<uses-feature android:name=\"android.hardware.camera\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.RECORD_AUDIO\"/>",
+                    "",
+                    "<uses-permission android:name=\"android.permission.CAMERA\"/>",
+                    ""
+                ],
+                "permissionExternalStorage" : {
+                    //首次进入APP时是否弹出手机存储授权
+                    "request" : "none",
+                    "prompt" : ""
+                },
+                "permissionPhoneState" : {
+                    //首次进入APP时是否弹出手机状态授权
+                    "request" : "none",
+                    "prompt" : ""
+                },
+                "schemes" : "wespeakenglish",
+                "abiFilters" : [ "armeabi-v7a", "arm64-v8a" ],
+                //"targetSdkVersion" : 34 ,//20240712
+                "targetSdkVersion" : 36 //20260721
+            },
+            /* ios打包配置 */
+            "ios" : {
+                "privacyDescription" : {
+                    "NSCameraUsageDescription" : "The App needs to use the camera for video chat.",
+                    "NSMicrophoneUsageDescription" : "To use audio and video function normally, the APP needs to enable microphone permission.",
+                    "NSUserTrackingUsageDescription" : "",
+                    "NSPhotoLibraryUsageDescription": "Not used. En Chat only uses the camera to scan QR codes in real time."
+
+                },
+                "urltypes" : [
+                    {
+                        "urlidentifier" : "chat.wespeakenglish.app",
+                        "urlschemes" : [ "wespeakenglish" ]
+                    }
+                ],
+                "urlschemewhitelist" : [ "wespeakenglish" ],
+                "idfa" : false,
+                "dSYMs" : false
+            },
+            /* SDK配置 */
+            "sdkConfigs" : {
+                "ad" : {},
+                "push" : {
+                    "unipush" : {
+                        "__privacy_prompt__" : "none"
+                    }
+                }
+            },
+            "icons" : {
+                "android" : {
+                    "hdpi" : "unpackage/res/icons/72x72.png",
+                    "xhdpi" : "unpackage/res/icons/96x96.png",
+                    "xxhdpi" : "unpackage/res/icons/144x144.png",
+                    "xxxhdpi" : "unpackage/res/icons/192x192.png"
+                },
+                "ios" : {
+                    "appstore" : "unpackage/res/icons/1024x1024.png",
+                    "ipad" : {
+                        "app" : "unpackage/res/icons/76x76.png",
+                        "app@2x" : "unpackage/res/icons/152x152.png",
+                        "notification" : "unpackage/res/icons/20x20.png",
+                        "notification@2x" : "unpackage/res/icons/40x40.png",
+                        "proapp@2x" : "unpackage/res/icons/167x167.png",
+                        "settings" : "unpackage/res/icons/29x29.png",
+                        "settings@2x" : "unpackage/res/icons/58x58.png",
+                        "spotlight" : "unpackage/res/icons/40x40.png",
+                        "spotlight@2x" : "unpackage/res/icons/80x80.png"
+                    },
+                    "iphone" : {
+                        "app@2x" : "unpackage/res/icons/120x120.png",
+                        "app@3x" : "unpackage/res/icons/180x180.png",
+                        "notification@2x" : "unpackage/res/icons/40x40.png",
+                        "notification@3x" : "unpackage/res/icons/60x60.png",
+                        "settings@2x" : "unpackage/res/icons/58x58.png",
+                        "settings@3x" : "unpackage/res/icons/87x87.png",
+                        "spotlight@2x" : "unpackage/res/icons/80x80.png",
+                        "spotlight@3x" : "unpackage/res/icons/120x120.png"
+                    }
+                }
+            },
+            "splashscreen" : {
+                "iosStyle" : "storyboard",
+                "androidStyle" : "default",
+                "ios" : {
+                    "storyboard" : "static/CustomStoryboard.zip"
+                },
+                "android" : {
+                    "hdpi" : "static/1080_1882.png",
+                    "xhdpi" : "static/1080_1882.png",
+                    "xxhdpi" : "static/1080_1882.png"
+                },
+                "useOriginalMsgbox" : false
+            }
+        },
+        "nativePlugins" : {
+            "DC-PushSound" : {
+                "__plugin_info__" : {
+                    "name" : "自定义推送铃声（iOS）",
+                    "description" : "自定义iOS推送铃声",
+                    "platforms" : "iOS",
+                    "url" : "https://ext.dcloud.net.cn/plugin?id=690",
+                    "android_package_name" : "uni.UNID9F6655",
+                    "ios_bundle_id" : "io.com.wespeakenglish",
+                    "isCloud" : true,
+                    "bought" : 1,
+                    "pid" : "690",
+                    "parameters" : {}
+                }
+            },
+            "TX-TRTCCloud" : {
+                "__plugin_info__" : {
+                    "name" : "腾讯实时音视频插件，qq群： 933785472",
+                    "description" : "腾讯ios,android原生sdk，插件永久维护，欢迎提需求",
+                    "platforms" : "Android,iOS",
+                    "url" : "https://ext.dcloud.net.cn/plugin?id=824",
+                    "android_package_name" : "uni.UNID9F6655",
+                    "ios_bundle_id" : "io.com.wespeakenglish",
+                    "isCloud" : true,
+                    "bought" : 1,
+                    "pid" : "824",
+                    "parameters" : {}
+                }
+            }
+        },
+        "nvueCompiler" : "uni-app"
+    },
+    /* 快应用特有相关 */
+    "quickapp" : {},
+    /* 小程序特有相关 */
+    "mp-weixin" : {
+        "appid" : "",
+        "setting" : {
+            "urlCheck" : false
+        },
+        "usingComponents" : true
+    },
+    "mp-alipay" : {
+        "usingComponents" : true
+    },
+    "mp-baidu" : {
+        "usingComponents" : true
+    },
+    "mp-toutiao" : {
+        "usingComponents" : true
+    },
+    "uniStatistics" : {
+        "enable" : false
+    }
+}
+//prompt取值为template时有效，用于配置模板提示框上显示的内容
+//继续下一步，进入首页
+//退出下载
+/* 模块配置 */
+
