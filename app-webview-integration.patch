@@ -1,0 +1,428 @@
+From 87722ce02f160b41008323ac0d2c33974d720ae9 Mon Sep 17 00:00:00 2001
+From: Muse <muse@local>
+Date: Mon, 28 Sep 2026 17:29:21 -0400
+Subject: [PATCH] Combine website into the app via embedded web-view
+
+- New pages/webview/index page: opens website pages (register, social login, homepage) inside the app; receives login state via postMessage
+- Login page: social login buttons (Google/Apple/Outlook/Facebook) and Create free account, all opening the website in-app; footer links now stay in-app too
+- Landing page: logged-out users see a welcome screen (Sign in / Create free account / Explore website) instead of being bounced to login; logged-in users keep the timetable plus a Website shortcut
+- New getSocialConfig model hitting /api/index/social_config
+---
+ App.vue                 | 88 +++++++++++++++++++++++++++++++++++++++++
+ models/index.js         |  8 ++++
+ pages.json              |  5 +++
+ pages/index/index.vue   | 73 ++++++++++++++++++++++++++++------
+ pages/login/index.vue   | 46 +++++++++++++++------
+ pages/webview/index.vue | 47 ++++++++++++++++++++++
+ 6 files changed, 245 insertions(+), 22 deletions(-)
+ create mode 100644 pages/webview/index.vue
+
+diff --git a/App.vue b/App.vue
+index 4e3a929..8e01676 100644
+--- a/App.vue
++++ b/App.vue
+@@ -333,6 +333,45 @@
+ 	.loginFoot{
+ 		padding: 50rpx 0 0 0;
+ 	}
++	.socialWrap{
++		padding: 40rpx 0 0 0;
++	}
++	.socialDivider{
++		text-align: center;
++		color: #999;
++		font-size: 26rpx;
++		margin-bottom: 24rpx;
++	}
++	.socialBtns{
++		display: flex;
++		flex-wrap: wrap;
++		gap: 16rpx;
++	}
++	uni-button.socialBtn{
++		flex: 1;
++		min-width: 40%;
++		font-size: 30rpx;
++		line-height: 88rpx;
++		border-radius: 10rpx;
++		background: #fff;
++		border: 1rpx solid #ddd;
++		color: #444;
++	}
++	uni-button.socialBtn--google{ border-color: #4285f4; color: #4285f4; }
++	uni-button.socialBtn--apple{ border-color: #111; color: #111; }
++	uni-button.socialBtn--microsoft{ border-color: #00a4ef; color: #00a4ef; }
++	uni-button.socialBtn--facebook{ border-color: #1877f2; color: #1877f2; }
++	.registerWrap{
++		padding: 30rpx 0 0 0;
++	}
++	uni-button.registerBtn{
++		font-size: 32rpx;
++		background: #fff;
++		color: #5d73bc;
++		border: 1rpx solid #5d73bc;
++		line-height: 100rpx;
++		border-radius: 10rpx;
++	}
+ 	
+ 	
+ 	.loginPrivacy{
+@@ -341,6 +380,55 @@
+ 		font-size: 28rpx;
+ 		color: #918986;
+ 	}
++	.webLink{
++		color: #5d73bc;
++		font-size: 28rpx;
++		margin-right: 24rpx;
++		text-decoration: underline;
++	}
++	.welcome{
++		padding: 80rpx 60rpx;
++		text-align: center;
++	}
++	.welcomeLogo{
++		width: 160rpx;
++		height: 160rpx;
++		margin-bottom: 40rpx;
++	}
++	.welcomeTitle{
++		font-size: 44rpx;
++		font-weight: bold;
++		color: #4e3c38;
++		margin-bottom: 24rpx;
++	}
++	.welcomeDesc{
++		font-size: 30rpx;
++		color: #888;
++		line-height: 48rpx;
++		margin-bottom: 60rpx;
++	}
++	.welcomeBtns{
++		display: flex;
++		flex-direction: column;
++		gap: 24rpx;
++	}
++	uni-button.welcomeBtn{
++		font-size: 32rpx;
++		font-weight: bold;
++		line-height: 100rpx;
++		border-radius: 10rpx;
++	}
++	uni-button.welcomeBtn--ghost{
++		background: #fff;
++		color: #5d73bc;
++		border: 1rpx solid #5d73bc;
++	}
++	.welcomeLink{
++		margin-top: 40rpx;
++		color: #5d73bc;
++		font-size: 28rpx;
++		text-decoration: underline;
++	}
+ 	
+ 	.loginPrivacy uni-checkbox .uni-checkbox-input{
+ 		border-radius: 32rpx;
+diff --git a/models/index.js b/models/index.js
+index 0f33128..ead29e1 100644
+--- a/models/index.js
++++ b/models/index.js
+@@ -142,6 +142,14 @@ export const geturl = () => {
+ 	})
+ }
+ 
++//社交登录配置：已启用的渠道、授权入口、注册页地址（供 App 内嵌网页使用）
++export const getSocialConfig = () => {
++	return apiResquest({
++		url: '/api/index/social_config',
++		method: 'GET'
++	})
++}
++
+ 
+ 
+ 
+diff --git a/pages.json b/pages.json
+index dd66833..3f52705 100644
+--- a/pages.json
++++ b/pages.json
+@@ -96,6 +96,11 @@
+ 					"titleNView":false					
+ 				}
+ 			}
++		},{
++			"path": "pages/webview/index",
++			"style": {
++				"navigationBarTitleText": "WeSpeakEnglish"
++			}
+ 		}
+ 	],
+ 	"tabBar": {
+diff --git a/pages/index/index.vue b/pages/index/index.vue
+index 751f079..f587db3 100644
+--- a/pages/index/index.vue
++++ b/pages/index/index.vue
+@@ -3,7 +3,7 @@
+ 	<view class="page">
+ 		<hx-navbar ref="hxnb" :config="config">
+ 			<block slot="left">
+-				<view class="left">
++				<view class="left" v-if="!isGuest">
+ 					<view class="headUser">
+ 						<text class="iconfont icontutor-me" :class="{'iconlearner-me': userInfo.user_type==1,'icontutor-me': userInfo.user_type==2}"></text>
+ 						{{userInfo.username}}
+@@ -11,14 +11,25 @@
+ 				</view>
+ 			</block>
+ 			<block slot="right">
+-				<view class="right">
++				<view class="right" v-if="!isGuest">
+ 					<view class="headRight">
++						<text v-if="homeUrl" class="webLink" @click="openWebview(homeUrl, 'WeSpeakEnglish')">Website</text>
+ 						<scan></scan>
+ 					</view>
+ 				</view>
+ 			</block>
+ 		</hx-navbar> 
+-		<view class="listRoom">			
++		<view v-if="isGuest" class="welcome">
++			<image src="../../static/logo.png" class="welcomeLogo"></image>
++			<view class="welcomeTitle">Conversation brings us closer</view>
++			<view class="welcomeDesc">Practice English with native speakers over video chat &#8212; or volunteer as a tutor and help learners around the world.</view>
++			<view class="welcomeBtns">
++				<button type="primary" class="welcomeBtn" @click="goLogin">Sign in</button>
++				<button v-if="registerUrl" class="welcomeBtn welcomeBtn--ghost" @click="openWebview(registerUrl, 'Create account')">Create free account</button>
++			</view>
++			<view v-if="homeUrl" class="welcomeLink" @click="openWebview(homeUrl, 'WeSpeakEnglish')">Explore the website</view>
++		</view>
++		<view class="listRoom" v-else>			
+ 			<view>
+ 			  <span style="display: flex; align-items: center; justify-content: space-between;">
+ 			    <span class="titleText" style="display: inline-block;">
+@@ -142,7 +153,7 @@
+ <script> 
+ 	import scan from "../../components/scan.vue"
+ 	import roomlist from "../../components/roomlist.vue"
+-	import { classList,setPushId } from '../../models/index.js'
++	import { classList,setPushId,getSocialConfig } from '../../models/index.js'
+ 	import loadmore from '@/components/uni-load-more.vue'
+ 	import countdown from '@/components/countdown.vue'
+ 	import { login } from '../../models/index.js'
+@@ -207,7 +218,11 @@
+ 				stopUocomingGet:false,
+ 				todayInterval:'',
+ 				oldUserId:'',
+-				cid:''
++				cid:'',
++				//未登录时显示欢迎页（App 已融合网站，不再强制跳登录页）
++				isGuest:false,
++				registerUrl:'',
++				homeUrl:''
+ 			}
+ 		},
+ 		components: {
+@@ -241,12 +256,48 @@
+ 		},
+ 		methods: { 
+ 			async init(){
+-				this.userInfo = this.$store.state.userInfo
+-				if(this.userInfo.id||!uni.getStorageSync('storage_password')){
+-					this.isLogin();
+-				}else{
+-					await this.login(uni.getStorageSync('storage_email'),uni.getStorageSync('storage_password'))
+-				}				
++				this.userInfo = this.$store.state.userInfo || uni.getStorageSync('userInfo')
++				if ((this.userInfo && this.userInfo.id) || uni.getStorageSync('storage_password')) {
++					this.isGuest = false
++					if (this.userInfo && this.userInfo.id && !uni.getStorageSync('storage_password')) {
++						this.isLogin();
++					} else {
++						await this.login(uni.getStorageSync('storage_email'), uni.getStorageSync('storage_password'))
++						//自动登录失败则回落到欢迎页
++						this.userInfo = this.$store.state.userInfo
++						if (!this.userInfo || !this.userInfo.id) {
++							this.isGuest = true
++							this.getSocialConfigFun()
++						}
++					}
++				} else {
++					//未登录：显示欢迎页，提供登录 / 注册（内嵌网站）入口
++					this.isGuest = true
++					this.getSocialConfigFun()
++				}
++			},
++			getSocialConfigFun(){
++				var _this = this
++				getSocialConfig().then((res) => {
++					_this.registerUrl = res.register_url || ''
++					_this.homeUrl = res.home_url || ''
++				}).catch(err => {})
++			},
++			goLogin(){
++				uni.navigateTo({
++					url: '/pages/login/index',
++					animationType: 'pop-in',
++					animationDuration: 200
++				})
++			},
++			//在 App 内嵌网页中打开网站页面，用户感觉不到离开了 App
++			openWebview(url, title){
++				if(!url){ return; }
++				uni.navigateTo({
++					url: '/pages/webview/index?url=' + encodeURIComponent(url) + '&title=' + encodeURIComponent(title || 'WeSpeakEnglish'),
++					animationType: 'pop-in',
++					animationDuration: 200
++				});
+ 			},
+ 			isLogin(){
+ 				
+diff --git a/pages/login/index.vue b/pages/login/index.vue
+index 73d779b..235041c 100644
+--- a/pages/login/index.vue
++++ b/pages/login/index.vue
+@@ -28,6 +28,17 @@
+ 			<view class="loginFoot">
+ 				<button type="primary" class="loginBtn" @click="loginClick" :disabled=" userName==='' || password==='' || !privacyChecke">Sign in</button>
+ 			</view>
++
++			<view class="socialWrap" v-if="providers.length">
++				<view class="socialDivider"><text>or continue with</text></view>
++				<view class="socialBtns">
++					<button v-for="(p,index) in providers" :key="index" class="socialBtn" :class="'socialBtn--'+p.provider" @click="openWebview(p.start_url, p.name)">{{p.name}}</button>
++				</view>
++			</view>
++
++			<view class="registerWrap" v-if="registerUrl">
++				<button class="registerBtn" @click="openWebview(registerUrl, 'Create account')">Create free account</button>
++			</view>
+ 			
+ 			<view class="loginPrivacy">
+ 				<label @click="privacy">
+@@ -38,7 +49,7 @@
+ 			
+ 		</view> 
+ 		<view class="footLink">
+-			To join us, set availability or book a chat, please visit:
++			To set availability or book a chat, you can also visit our website without leaving the app:
+ 			<view>
+ 				<!-- <text @click="openLink(1)" class="footLinkItem">wespeakenglish.chat(Asia)</text> -->
+ 				<text  v-for="(item,index) in urlList" :key="index" class="footLinkItem" @click="openLink(item.url)">{{item.txt}}</text> 
+@@ -52,7 +63,7 @@
+ </template>
+ 
+ <script>
+-	import { login,geturl } from '../../models/index.js'
++	import { login,geturl,getSocialConfig } from '../../models/index.js'
+ 	import scan from "../../components/scan.vue"
+ 	export default {
+ 		data() {
+@@ -66,6 +77,8 @@
+ 				pwdIsCut:false,
+ 				showAgr:false,
+ 				urlList:[],
++				providers:[],
++				registerUrl:'',
+ 			}
+ 		},
+ 		components: {
+@@ -76,6 +89,7 @@
+ 			uni.getSystemInfo({
+ 				success:(res) => {
+ 					_this.geturlFun();
++					_this.getSocialConfigFun();
+ 					if(res.platform=="android"){ 
+ 						_this.showAgr = true
+ 					}else{ 
+@@ -114,17 +128,27 @@
+ 					//console.log(err,222222)
+ 				})
+ 			},
+-			openLink(url){
+-				// var url = ''
+-				// if(type == 1){
+-				// 	url = 'https://www.wespeakenglish.chat'
+-				// }else if(type == 2){
+-				// 	url = 'https://www.wespeakenglish.net'
+-				// }
+-				plus.runtime.openURL(url, function(res) {  
+-					console.log(res);  
++			getSocialConfigFun(){
++				var that=this;
++				getSocialConfig().then((res) => {
++					that.providers = res.providers || [];
++					that.registerUrl = res.register_url || '';
++				}).catch(err => {
++					//console.log(err,222222)
++				})
++			},
++			//在 App 内嵌网页中打开网站页面（注册 / 社交登录 / 官网），用户感觉不到离开了 App
++			openWebview(url, title){
++				if(!url){ return; }
++				uni.navigateTo({
++					url: '/pages/webview/index?url=' + encodeURIComponent(url) + '&title=' + encodeURIComponent(title || 'WeSpeakEnglish'),
++					animationType: 'pop-in',
++					animationDuration: 200
+ 				});
+ 			},
++			openLink(url){
++				this.openWebview(url, 'WeSpeakEnglish');
++			},
+ 			unsubscribe(){
+ 				console.log(22222222222222222222)
+ 					uni.navigateTo({
+diff --git a/pages/webview/index.vue b/pages/webview/index.vue
+new file mode 100644
+index 0000000..f3e3ba5
+--- /dev/null
++++ b/pages/webview/index.vue
+@@ -0,0 +1,47 @@
++<!--App 内嵌网页：打开网站的注册页 / 社交登录页，登录成功后网站会把登录态 postMessage 回来-->
++<template>
++	<web-view :src="url" @message="onMessage"></web-view>
++</template>
++
++<script>
++	export default {
++		data() {
++			return {
++				url: ''
++			}
++		},
++		onLoad(option) {
++			if (option.url) {
++				this.url = decodeURIComponent(option.url);
++			}
++			if (option.title) {
++				uni.setNavigationBarTitle({ title: decodeURIComponent(option.title) });
++			}
++		},
++		methods: {
++			//网站登录成功页会 postMessage 用户信息（含 App token），同时页面会自动 navigateBack 关闭自己
++			//这里只负责保存登录态，不再二次返回，避免多退一页
++			onMessage(e) {
++				var msgs = (e.detail && e.detail.data) || [];
++				for (var i = 0; i < msgs.length; i++) {
++					var m = msgs[i];
++					if (m && m.type === 'wespeak-social-login' && m.user && m.user.token) {
++						var userInfo = m.user;
++						var _this = this;
++						uni.setStorage({
++							key: 'userInfo',
++							data: userInfo,
++							success: function () {
++								_this.$store.commit('login', userInfo);
++								uni.showToast({ title: 'Signed in successfully', icon: 'none' });
++							}
++						});
++					}
++				}
++			}
++		}
++	}
++</script>
++
++<style>
++</style>
+-- 
+2.43.0
+

@@ -333,6 +333,45 @@
 	.loginFoot{
 		padding: 50rpx 0 0 0;
 	}
+	.socialWrap{
+		padding: 40rpx 0 0 0;
+	}
+	.socialDivider{
+		text-align: center;
+		color: #999;
+		font-size: 26rpx;
+		margin-bottom: 24rpx;
+	}
+	.socialBtns{
+		display: flex;
+		flex-wrap: wrap;
+		gap: 16rpx;
+	}
+	uni-button.socialBtn{
+		flex: 1;
+		min-width: 40%;
+		font-size: 30rpx;
+		line-height: 88rpx;
+		border-radius: 10rpx;
+		background: #fff;
+		border: 1rpx solid #ddd;
+		color: #444;
+	}
+	uni-button.socialBtn--google{ border-color: #4285f4; color: #4285f4; }
+	uni-button.socialBtn--apple{ border-color: #111; color: #111; }
+	uni-button.socialBtn--microsoft{ border-color: #00a4ef; color: #00a4ef; }
+	uni-button.socialBtn--facebook{ border-color: #1877f2; color: #1877f2; }
+	.registerWrap{
+		padding: 30rpx 0 0 0;
+	}
+	uni-button.registerBtn{
+		font-size: 32rpx;
+		background: #fff;
+		color: #5d73bc;
+		border: 1rpx solid #5d73bc;
+		line-height: 100rpx;
+		border-radius: 10rpx;
+	}
 	
 	
 	.loginPrivacy{
@@ -340,6 +379,55 @@
 		text-align: center;
 		font-size: 28rpx;
 		color: #918986;
+	}
+	.webLink{
+		color: #5d73bc;
+		font-size: 28rpx;
+		margin-right: 24rpx;
+		text-decoration: underline;
+	}
+	.welcome{
+		padding: 80rpx 60rpx;
+		text-align: center;
+	}
+	.welcomeLogo{
+		width: 160rpx;
+		height: 160rpx;
+		margin-bottom: 40rpx;
+	}
+	.welcomeTitle{
+		font-size: 44rpx;
+		font-weight: bold;
+		color: #4e3c38;
+		margin-bottom: 24rpx;
+	}
+	.welcomeDesc{
+		font-size: 30rpx;
+		color: #888;
+		line-height: 48rpx;
+		margin-bottom: 60rpx;
+	}
+	.welcomeBtns{
+		display: flex;
+		flex-direction: column;
+		gap: 24rpx;
+	}
+	uni-button.welcomeBtn{
+		font-size: 32rpx;
+		font-weight: bold;
+		line-height: 100rpx;
+		border-radius: 10rpx;
+	}
+	uni-button.welcomeBtn--ghost{
+		background: #fff;
+		color: #5d73bc;
+		border: 1rpx solid #5d73bc;
+	}
+	.welcomeLink{
+		margin-top: 40rpx;
+		color: #5d73bc;
+		font-size: 28rpx;
+		text-decoration: underline;
 	}
 	
 	.loginPrivacy uni-checkbox .uni-checkbox-input{

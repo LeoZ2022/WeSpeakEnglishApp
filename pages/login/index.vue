@@ -28,6 +28,17 @@
 			<view class="loginFoot">
 				<button type="primary" class="loginBtn" @click="loginClick" :disabled=" userName==='' || password==='' || !privacyChecke">Sign in</button>
 			</view>
+
+			<view class="socialWrap" v-if="providers.length">
+				<view class="socialDivider"><text>or continue with</text></view>
+				<view class="socialBtns">
+					<button v-for="(p,index) in providers" :key="index" class="socialBtn" :class="'socialBtn--'+p.provider" @click="openWebview(p.start_url, p.name)">{{p.name}}</button>
+				</view>
+			</view>
+
+			<view class="registerWrap" v-if="registerUrl">
+				<button class="registerBtn" @click="openWebview(registerUrl, 'Create account')">Create free account</button>
+			</view>
 			
 			<view class="loginPrivacy">
 				<label @click="privacy">
@@ -38,7 +49,7 @@
 			
 		</view> 
 		<view class="footLink">
-			To join us, set availability or book a chat, please visit:
+			To set availability or book a chat, you can also visit our website without leaving the app:
 			<view>
 				<!-- <text @click="openLink(1)" class="footLinkItem">wespeakenglish.chat(Asia)</text> -->
 				<text  v-for="(item,index) in urlList" :key="index" class="footLinkItem" @click="openLink(item.url)">{{item.txt}}</text> 
@@ -52,7 +63,7 @@
 </template>
 
 <script>
-	import { login,geturl } from '../../models/index.js'
+	import { login,geturl,getSocialConfig } from '../../models/index.js'
 	import scan from "../../components/scan.vue"
 	export default {
 		data() {
@@ -66,6 +77,8 @@
 				pwdIsCut:false,
 				showAgr:false,
 				urlList:[],
+				providers:[],
+				registerUrl:'',
 			}
 		},
 		components: {
@@ -76,6 +89,7 @@
 			uni.getSystemInfo({
 				success:(res) => {
 					_this.geturlFun();
+					_this.getSocialConfigFun();
 					if(res.platform=="android"){ 
 						_this.showAgr = true
 					}else{ 
@@ -114,16 +128,26 @@
 					//console.log(err,222222)
 				})
 			},
-			openLink(url){
-				// var url = ''
-				// if(type == 1){
-				// 	url = 'https://www.wespeakenglish.chat'
-				// }else if(type == 2){
-				// 	url = 'https://www.wespeakenglish.net'
-				// }
-				plus.runtime.openURL(url, function(res) {  
-					console.log(res);  
+			getSocialConfigFun(){
+				var that=this;
+				getSocialConfig().then((res) => {
+					that.providers = res.providers || [];
+					that.registerUrl = res.register_url || '';
+				}).catch(err => {
+					//console.log(err,222222)
+				})
+			},
+			//在 App 内嵌网页中打开网站页面（注册 / 社交登录 / 官网），用户感觉不到离开了 App
+			openWebview(url, title){
+				if(!url){ return; }
+				uni.navigateTo({
+					url: '/pages/webview/index?url=' + encodeURIComponent(url) + '&title=' + encodeURIComponent(title || 'WeSpeakEnglish'),
+					animationType: 'pop-in',
+					animationDuration: 200
 				});
+			},
+			openLink(url){
+				this.openWebview(url, 'WeSpeakEnglish');
 			},
 			unsubscribe(){
 				console.log(22222222222222222222)

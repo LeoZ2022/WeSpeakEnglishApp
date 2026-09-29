@@ -3,7 +3,7 @@
 	<view class="page">
 		<hx-navbar ref="hxnb" :config="config">
 			<block slot="left">
-				<view class="left">
+				<view class="left" v-if="!isGuest">
 					<view class="headUser">
 						<text class="iconfont icontutor-me" :class="{'iconlearner-me': userInfo.user_type==1,'icontutor-me': userInfo.user_type==2}"></text>
 						{{userInfo.username}}
@@ -11,14 +11,25 @@
 				</view>
 			</block>
 			<block slot="right">
-				<view class="right">
+				<view class="right" v-if="!isGuest">
 					<view class="headRight">
+						<text v-if="homeUrl" class="webLink" @click="openWebview(homeUrl, 'WeSpeakEnglish')">Website</text>
 						<scan></scan>
 					</view>
 				</view>
 			</block>
 		</hx-navbar> 
-		<view class="listRoom">			
+		<view v-if="isGuest" class="welcome">
+			<image src="../../static/logo.png" class="welcomeLogo"></image>
+			<view class="welcomeTitle">Conversation brings us closer</view>
+			<view class="welcomeDesc">Practice English with native speakers over video chat &#8212; or volunteer as a tutor and help learners around the world.</view>
+			<view class="welcomeBtns">
+				<button type="primary" class="welcomeBtn" @click="goLogin">Sign in</button>
+				<button v-if="registerUrl" class="welcomeBtn welcomeBtn--ghost" @click="openWebview(registerUrl, 'Create account')">Create free account</button>
+			</view>
+			<view v-if="homeUrl" class="welcomeLink" @click="openWebview(homeUrl, 'WeSpeakEnglish')">Explore the website</view>
+		</view>
+		<view class="listRoom" v-else>			
 			<view>
 			  <span style="display: flex; align-items: center; justify-content: space-between;">
 			    <span class="titleText" style="display: inline-block;">
@@ -142,7 +153,7 @@
 <script> 
 	import scan from "../../components/scan.vue"
 	import roomlist from "../../components/roomlist.vue"
-	import { classList,setPushId } from '../../models/index.js'
+	import { classList,setPushId,getSocialConfig } from '../../models/index.js'
 	import loadmore from '@/components/uni-load-more.vue'
 	import countdown from '@/components/countdown.vue'
 	import { login } from '../../models/index.js'
@@ -207,7 +218,11 @@
 				stopUocomingGet:false,
 				todayInterval:'',
 				oldUserId:'',
-				cid:''
+				cid:'',
+				//未登录时显示欢迎页（App 已融合网站，不再强制跳登录页）
+				isGuest:false,
+				registerUrl:'',
+				homeUrl:''
 			}
 		},
 		components: {
@@ -241,12 +256,48 @@
 		},
 		methods: { 
 			async init(){
-				this.userInfo = this.$store.state.userInfo
-				if(this.userInfo.id||!uni.getStorageSync('storage_password')){
-					this.isLogin();
-				}else{
-					await this.login(uni.getStorageSync('storage_email'),uni.getStorageSync('storage_password'))
-				}				
+				this.userInfo = this.$store.state.userInfo || uni.getStorageSync('userInfo')
+				if ((this.userInfo && this.userInfo.id) || uni.getStorageSync('storage_password')) {
+					this.isGuest = false
+					if (this.userInfo && this.userInfo.id && !uni.getStorageSync('storage_password')) {
+						this.isLogin();
+					} else {
+						await this.login(uni.getStorageSync('storage_email'), uni.getStorageSync('storage_password'))
+						//自动登录失败则回落到欢迎页
+						this.userInfo = this.$store.state.userInfo
+						if (!this.userInfo || !this.userInfo.id) {
+							this.isGuest = true
+							this.getSocialConfigFun()
+						}
+					}
+				} else {
+					//未登录：显示欢迎页，提供登录 / 注册（内嵌网站）入口
+					this.isGuest = true
+					this.getSocialConfigFun()
+				}
+			},
+			getSocialConfigFun(){
+				var _this = this
+				getSocialConfig().then((res) => {
+					_this.registerUrl = res.register_url || ''
+					_this.homeUrl = res.home_url || ''
+				}).catch(err => {})
+			},
+			goLogin(){
+				uni.navigateTo({
+					url: '/pages/login/index',
+					animationType: 'pop-in',
+					animationDuration: 200
+				})
+			},
+			//在 App 内嵌网页中打开网站页面，用户感觉不到离开了 App
+			openWebview(url, title){
+				if(!url){ return; }
+				uni.navigateTo({
+					url: '/pages/webview/index?url=' + encodeURIComponent(url) + '&title=' + encodeURIComponent(title || 'WeSpeakEnglish'),
+					animationType: 'pop-in',
+					animationDuration: 200
+				});
 			},
 			isLogin(){
 				

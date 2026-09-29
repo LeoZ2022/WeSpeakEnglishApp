@@ -142,6 +142,14 @@ export const geturl = () => {
 	})
 }
 
+//社交登录配置：已启用的渠道、授权入口、注册页地址（供 App 内嵌网页使用）
+export const getSocialConfig = () => {
+	return apiResquest({
+		url: '/api/index/social_config',
+		method: 'GET'
+	})
+}
+
 
 
 

@@ -96,6 +96,11 @@
 					"titleNView":false					
 				}
 			}
+		},{
+			"path": "pages/webview/index",
+			"style": {
+				"navigationBarTitleText": "WeSpeakEnglish"
+			}
 		}
 	],
 	"tabBar": {
